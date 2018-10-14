@@ -193,9 +193,7 @@ void ws2812_clear(ws2812_led_t *leds, int led_count) {
 void ws2812_clear_priv(){
 
 	while(dma_stage != dma_ready || led_stage != led_idle){
-		for(int i = 0; i < 10000; i++){
-			__asm__("nop");		
-		}
+		__asm__("nop");		
 	}
 
 	for(int i = 0; i < LEDS_BUFFER_SIZE; i++) {

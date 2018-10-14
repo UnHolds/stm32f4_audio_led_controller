@@ -38,9 +38,9 @@ int main(void)
 
 	while (1) {
 
-		for(int i = 0; i < 1000; i++){
-			__asm__("nop");
-		}
+		//for(int i = 0; i < 1000; i++){
+		//	__asm__("nop");
+		//}
         	
 		past_addr = curr_addr;
 
