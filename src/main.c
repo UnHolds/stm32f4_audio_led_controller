@@ -7,6 +7,7 @@
 #include <libopencmsis/core_cm3.h>
 
 #include "ws2812.h"
+#include "adc_dac.h"
 
 #define LED_COUNT (300)
 
@@ -28,10 +29,10 @@ void clock_setup(void){
 
 int main(void)
 {
-    	clock_setup();
-    	ws2812_init();
+    	//clock_setup();
+    	//ws2812_init();
 
-
+	/*
 	int curr_addr = 0;
 	int past_addr = 300;
 
@@ -58,6 +59,13 @@ int main(void)
 		ws2812_send(leds, LED_COUNT);
 		
     	}
+	*/
+
+	adc_init();
+
+	while(1){
+		__asm__("nop");
+	}
    
     	return 0;
 }

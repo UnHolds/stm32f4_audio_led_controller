@@ -19,7 +19,7 @@
 
 BINARY = main
 
-OBJS = ws2812.o
+OBJS = ws2812.o adc_dac.o
 
 CFLAGS = -std=c99
 
