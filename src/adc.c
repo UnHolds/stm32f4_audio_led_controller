@@ -9,6 +9,7 @@
 #include "isr.h"
 #include "gpio.h"
 #include "adc_var.h"
+#include "timer.h"
 
 
 
@@ -27,12 +28,6 @@ void adc_dma_setup(void);
 //void adc_gpio_setup(void){ }
 
 
-void adc_dma_setup(void){
-
-	adc_dma_init();
-
-	
-}
 
 
 
@@ -70,9 +65,10 @@ void adc_setup(void){
 	adc_set_right_aligned(ADC1);
 	adc_set_sample_time(ADC1, ADC_CHANNEL0, ADC_SMPR_SMP_3CYC);
 	adc_set_resolution(ADC1, ADC_CR1_RES_12BIT);
-	adc_disable_external_trigger_regular(ADC1);
+	//adc_disable_external_trigger_regular(ADC1);
+	adc_enable_external_trigger_regular(ADC1, ADC_CR2_EXTSEL_TIM2_TRGO, ADC_CR2_EXTEN_RISING_EDGE);
 	adc_set_regular_sequence(ADC1, 1, channel_seq);
-	adc_set_continuous_conversion_mode(ADC1);
+	//adc_set_continuous_conversion_mode(ADC1);
 	adc_eoc_after_group(ADC1);
 	adc_disable_eoc_interrupt(ADC1);
 	adc_enable_dma(ADC1);
@@ -84,8 +80,8 @@ void adc_setup(void){
 
 void adc_init(void){
 	adc_gpio_init();
-
-	adc_dma_setup();
+	adc_timer_init();
+	adc_dma_init();
 	adc_setup();
 	gpio_set(GPIOA, GPIO6);
 	gpio_set(GPIOA, GPIO7);	

@@ -29,10 +29,12 @@ void clock_setup(void){
 
 int main(void)
 {
-    	//clock_setup();
-    	//ws2812_init();
+    	clock_setup();
+    	/*
+	
+	ws2812_init();
 
-	/*
+	
 	int curr_addr = 0;
 	int past_addr = 300;
 

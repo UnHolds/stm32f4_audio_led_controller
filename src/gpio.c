@@ -4,10 +4,9 @@
 #include "gpio.h"
 
 void ws2812_gpio_init(void){
-	rcc_periph_clock_enable(RCC_GPIOD);
-	gpio_mode_setup(GPIOD, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO12);
-	gpio_set_af(GPIOD, GPIO_AF2, GPIO12);
-
+	rcc_periph_clock_enable(RCC_GPIOC);
+	gpio_mode_setup(GPIOC, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6);
+	gpio_set_af(GPIOC, GPIO_AF2, GPIO6);
 }
 
 

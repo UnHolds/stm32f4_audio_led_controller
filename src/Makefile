@@ -19,7 +19,7 @@
 
 BINARY = main
 
-OBJS = ws2812.o adc.o gpio.o dma.o
+OBJS = ws2812.o adc.o gpio.o dma.o timer.o
 
 CFLAGS = -std=c99
 

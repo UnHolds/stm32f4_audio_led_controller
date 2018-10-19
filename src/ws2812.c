@@ -8,7 +8,9 @@
 #include "isr.h"
 #include "ws2812_var.h"
 #include "gpio.h"
+#include "timer.h"
 #include "dma.h"
+
 
 
 //This bit buffer contains the threshold values for the PWM (Timer)
@@ -47,7 +49,6 @@ struct ws2812 {
 } ws2812;
 
 //Electric
-void pwm_setup(void);
 void ws2812_dma_setup(void);
 void ws2812_dma_start(void);
 void ws2812_dma_stop(void);
@@ -61,29 +62,7 @@ int get_timing_value(int n);
 
 void ws2812_clear_priv(void);
 
-void pwm_setup(void) {
 
-	rcc_periph_clock_enable(RCC_TIM4);
-    	rcc_periph_reset_pulse(RST_TIM4);
-    	timer_set_mode(TIM4, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
-    	timer_set_prescaler(TIM4, 0);
-    	timer_continuous_mode(TIM4);
-    	timer_set_period(TIM4, 104); /* 168000000 / 2 / 800000 (800khz pwm) */
-    	timer_disable_oc_output(TIM4, TIM_OC1);
-    	timer_disable_oc_clear(TIM4, TIM_OC1);
-    	timer_enable_oc_preload(TIM4, TIM_OC1);
-    	timer_set_oc_slow_mode(TIM4, TIM_OC1);
-    	timer_set_oc_mode(TIM4, TIM_OC1, TIM_OCM_PWM1);
-    	timer_set_oc_polarity_high(TIM4, TIM_OC1);
-    	timer_set_oc_value(TIM4, TIM_OC1, 0);
-    	timer_enable_oc_output(TIM4, TIM_OC1);
-    	timer_enable_preload(TIM4);
-
-    	timer_enable_irq(TIM4, TIM_DIER_UDE);
-
-	timer_enable_counter(TIM4);
-	
-}
 
 
 void ws2812_dma_setup(void) {
@@ -93,9 +72,9 @@ void ws2812_dma_setup(void) {
 
 
 void ws2812_dma_stop(void) {
-	timer_set_oc_value(TIM4, TIM_OC1, 0);
-	dma_disable_stream(DMA1, DMA_STREAM6);
-	timer_set_oc_value(TIM4, TIM_OC1, 0);
+	timer_set_oc_value(TIM3, TIM_OC1, 0);
+	dma_disable_stream(DMA1, DMA_STREAM2);
+	timer_set_oc_value(TIM3, TIM_OC1, 0);
 	
 	dma_stage = dma_ready;
 	led_stage = led_idle;
@@ -104,15 +83,15 @@ void ws2812_dma_stop(void) {
 
 void ws2812_dma_start(void) {
 	dma_stage = dma_busy;
-	dma_enable_stream(DMA1, DMA_STREAM6);
+	dma_enable_stream(DMA1, DMA_STREAM2);
 	
 }
 
 
 
-void dma1_str6_isr(void) {
+void dma1_str2_isr(void) {
 
-    if (dma_get_interrupt_flag(DMA1, DMA_STREAM6, DMA_HTIF) != 0) {
+    if (dma_get_interrupt_flag(DMA1, DMA_STREAM2, DMA_HTIF) != 0) {
         
 	
 	if(ws2812.leds_sent < (ws2812.led_count + LED_DEAD_TIME) && led_stage == led_sending){
@@ -124,10 +103,10 @@ void dma1_str6_isr(void) {
 	if(led_stage == led_done){
 		ws2812_dma_stop();
 	}
-	dma_clear_interrupt_flags(DMA1, DMA_STREAM6, DMA_HTIF);
+	dma_clear_interrupt_flags(DMA1, DMA_STREAM2, DMA_HTIF);
     }
 
-    if (dma_get_interrupt_flag(DMA1, DMA_STREAM6, DMA_TCIF) != 0) {
+    if (dma_get_interrupt_flag(DMA1, DMA_STREAM2, DMA_TCIF) != 0) {
         
 
 	if(ws2812.leds_sent < (ws2812.led_count + LED_DEAD_TIME) && led_stage == led_sending){
@@ -145,7 +124,7 @@ void dma1_str6_isr(void) {
 	}else if(led_stage == led_clear){
 		ws2812_dma_stop();
 	}
-	dma_clear_interrupt_flags(DMA1, DMA_STREAM6, DMA_TCIF);	
+	dma_clear_interrupt_flags(DMA1, DMA_STREAM2, DMA_TCIF);	
     }
 }
 
@@ -305,8 +284,7 @@ bool ws2812_ready(void){
 void ws2812_init(void){
 	
 	ws2812_gpio_init();
-
-	pwm_setup();
+	ws2812_timer_init();
 	ws2812_dma_setup();
 	led_stage = led_idle;
 
@@ -331,7 +309,7 @@ int main(void){
 	gpio_set(GPIOA, GPIO6);
 	gpio_set(GPIOA, GPIO7);	
 
-	pwm_setup();
+	ws2812_timer_init();
 	ws2812_dma_setup();
 	led_stage = led_idle;
 
