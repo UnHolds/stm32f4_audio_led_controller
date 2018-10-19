@@ -5,17 +5,20 @@
 #include <libopencm3/stm32/dma.h>
 
 #include "ws2812.h"
+#include "isr.h"
+#include "ws2812_var.h"
+#include "gpio.h"
+#include "dma.h"
 
-//Sets the size of the buffer (each LED need 24Bits)
-#define LEDS_BUFFER_SIZE (24 * 100)
 
+//This bit buffer contains the threshold values for the PWM (Timer)
+uint16_t bit_buffer[LEDS_BUFFER_SIZE];
 
 //Dead time after all logical highs and lows are send to reset all led. (Make Leds ready for the next transmission)
 #define LED_DEAD_TIME (2)
 
 
-//This bit buffer contains the threshold values for the PWM (Timer)
-uint16_t bit_buffer[LEDS_BUFFER_SIZE];
+
 
 //LEDS_BUFFER_SIZE * clear_cycles ZEROS will be send out by the controller to turn off all leds at the beginning.
 // LEDS put out = (LEDS_BUFFER_SIZE / 24 * clear_cyles) [Each led has 24 Bits  8 Red, 8 Blue, 8 Green]
@@ -45,9 +48,9 @@ struct ws2812 {
 
 //Electric
 void pwm_setup(void);
-void dma_setup(void);
-void dma_start(void);
-void dma_stop(void);
+void ws2812_dma_setup(void);
+void ws2812_dma_start(void);
+void ws2812_dma_stop(void);
 
 //Misc Funktions
 void fill_buffer(bool b_high);
@@ -83,35 +86,13 @@ void pwm_setup(void) {
 }
 
 
-void dma_setup(void) {
-
-
-
-	rcc_periph_clock_enable(RCC_DMA1);
-    	nvic_enable_irq(NVIC_DMA1_STREAM6_IRQ);
-	dma_stream_reset(DMA1, DMA_STREAM6);
-    	dma_set_priority(DMA1, DMA_STREAM6, DMA_SxCR_PL_VERY_HIGH);
-    	dma_set_memory_size(DMA1, DMA_STREAM6, DMA_SxCR_MSIZE_16BIT);
-    	dma_set_peripheral_size(DMA1, DMA_STREAM6, DMA_SxCR_PSIZE_16BIT);
-    	dma_enable_circular_mode(DMA1, DMA_STREAM6);
-    	dma_enable_memory_increment_mode(DMA1, DMA_STREAM6);
-    	dma_set_transfer_mode(DMA1, DMA_STREAM6, DMA_SxCR_DIR_MEM_TO_PERIPHERAL);
-    	dma_set_peripheral_address(DMA1, DMA_STREAM6, (uint32_t)&TIM4_CCR1);
-    	dma_set_memory_address(DMA1, DMA_STREAM6, (uint32_t)(&bit_buffer[0]));
-    	dma_set_number_of_data(DMA1, DMA_STREAM6, LEDS_BUFFER_SIZE);
-    	dma_enable_half_transfer_interrupt(DMA1, DMA_STREAM6);
-    	dma_enable_transfer_complete_interrupt(DMA1, DMA_STREAM6);
-    	dma_channel_select(DMA1, DMA_STREAM6, DMA_SxCR_CHSEL_2);
-    	nvic_clear_pending_irq(NVIC_DMA1_STREAM6_IRQ);
-    	nvic_set_priority(NVIC_DMA1_STREAM6_IRQ, 0);
-	nvic_enable_irq(NVIC_DMA1_STREAM6_IRQ);
-	
+void ws2812_dma_setup(void) {
+	ws2812_dma_init();
 	dma_stage = dma_ready;
-
 }	
 
 
-void dma_stop(void) {
+void ws2812_dma_stop(void) {
 	timer_set_oc_value(TIM4, TIM_OC1, 0);
 	dma_disable_stream(DMA1, DMA_STREAM6);
 	timer_set_oc_value(TIM4, TIM_OC1, 0);
@@ -121,7 +102,7 @@ void dma_stop(void) {
 }
 
 
-void dma_start(void) {
+void ws2812_dma_start(void) {
 	dma_stage = dma_busy;
 	dma_enable_stream(DMA1, DMA_STREAM6);
 	
@@ -129,7 +110,7 @@ void dma_start(void) {
 
 
 
-void dma1_stream6_isr(void) {
+void dma1_str6_isr(void) {
 
     if (dma_get_interrupt_flag(DMA1, DMA_STREAM6, DMA_HTIF) != 0) {
         
@@ -141,7 +122,7 @@ void dma1_stream6_isr(void) {
 	}
 
 	if(led_stage == led_done){
-		dma_stop();
+		ws2812_dma_stop();
 	}
 	dma_clear_interrupt_flags(DMA1, DMA_STREAM6, DMA_HTIF);
     }
@@ -156,13 +137,13 @@ void dma1_stream6_isr(void) {
 	}
 
 	if(led_stage == led_done){
-		dma_stop();
+		ws2812_dma_stop();
 	}
 
 	if(count_clear_cycles < clear_cycles){
 		count_clear_cycles++;
 	}else if(led_stage == led_clear){
-		dma_stop();
+		ws2812_dma_stop();
 	}
 	dma_clear_interrupt_flags(DMA1, DMA_STREAM6, DMA_TCIF);	
     }
@@ -202,7 +183,7 @@ void ws2812_clear_priv(){
 
 	count_clear_cycles = 0;
 	led_stage = led_clear;
-	dma_start();
+	ws2812_dma_start();
 
 }
 
@@ -221,7 +202,7 @@ void ws2812_send(ws2812_led_t *leds, int led_count){
 
 	fill_full_buffer();
 	led_stage = led_sending;
-	dma_start();
+	ws2812_dma_start();
 	
 }
 
@@ -322,12 +303,11 @@ bool ws2812_ready(void){
 
 
 void ws2812_init(void){
-	rcc_periph_clock_enable(RCC_GPIOD);
-	gpio_mode_setup(GPIOD, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO12);
-	gpio_set_af(GPIOD, GPIO_AF2, GPIO12);
+	
+	ws2812_gpio_init();
 
 	pwm_setup();
-	dma_setup();
+	ws2812_dma_setup();
 	led_stage = led_idle;
 
 	ws2812_clear_priv();
@@ -352,7 +332,7 @@ int main(void){
 	gpio_set(GPIOA, GPIO7);	
 
 	pwm_setup();
-	dma_setup();
+	ws2812_dma_setup();
 	led_stage = led_idle;
 
 	clear();

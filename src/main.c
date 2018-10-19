@@ -7,7 +7,7 @@
 #include <libopencmsis/core_cm3.h>
 
 #include "ws2812.h"
-#include "adc_dac.h"
+#include "adc.h"
 
 #define LED_COUNT (300)
 
