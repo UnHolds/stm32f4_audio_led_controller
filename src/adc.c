@@ -10,6 +10,8 @@
 #include "gpio.h"
 #include "adc_var.h"
 #include "timer.h"
+#include "filter.h"
+
 
 
 
@@ -35,7 +37,7 @@ void dma2_str0_isr(void) {
 
     if (dma_get_interrupt_flag(DMA2, DMA_STREAM0, DMA_HTIF) != 0) {
 	
-	
+	ADC_HTIF_filter_isr();
 	
 	dma_clear_interrupt_flags(DMA2, DMA_STREAM0, DMA_HTIF);
 	
@@ -43,7 +45,7 @@ void dma2_str0_isr(void) {
 
     if (dma_get_interrupt_flag(DMA2, DMA_STREAM0, DMA_TCIF) != 0) {
 		
-
+	ADC_TCIF_filter_isr();
 	
 	dma_clear_interrupt_flags(DMA2, DMA_STREAM0, DMA_TCIF);
     }
@@ -87,14 +89,6 @@ void adc_init(void){
 	gpio_set(GPIOA, GPIO7);	
 	
 	dma_enable_stream(DMA2, DMA_STREAM0);
-	while(1){
-		__asm__("nop");	
-
-		if(adc_buffer[0] > 1000){
-			gpio_clear(GPIOA, GPIO6);
-		}else{
-			gpio_set(GPIOA, GPIO6);
-		}	
-	}
+	
 
 }

@@ -8,6 +8,7 @@
 
 #include "ws2812.h"
 #include "adc.h"
+#include "dac.h"
 
 #define LED_COUNT (300)
 
@@ -30,7 +31,7 @@ void clock_setup(void){
 int main(void)
 {
     	clock_setup();
-    	/*
+    	
 	
 	ws2812_init();
 
@@ -38,13 +39,28 @@ int main(void)
 	int curr_addr = 0;
 	int past_addr = 300;
 
-
+	int r = 255;
+	int g = 0;
+	int b = 0;
+	
 	while (1) {
 
-		//for(int i = 0; i < 1000; i++){
-		//	__asm__("nop");
-		//}
+
+		if(r == 255 && g < 255 && b == 0){
+			g++;
+		}else if(r > 0 && g == 255 && b == 0){
+			r--;
+		}else if(r == 0 && g == 255 && b < 255){
+			b++;
+		}else if(r == 0 && g > 0 && b == 255){
+			g--;
+		}else if(r < 255 && g == 0 && b == 255){
+			r++;
+		}else if(r == 255 && g == 0 && b > 0){
+			b--;
+		}
         	
+		
 		past_addr = curr_addr;
 
 		if(curr_addr == 300){
@@ -53,18 +69,31 @@ int main(void)
 			curr_addr++;
 		}
 
-		leds[curr_addr].colors.b = 255;
+
+		leds[curr_addr].colors.r = r;
+		leds[curr_addr].colors.g = g;
+		leds[curr_addr].colors.b = b;
+		
+		leds[past_addr].colors.r = 0;
+		leds[past_addr].colors.g = 0;
 		leds[past_addr].colors.b = 0;
-	
-	
+		
+
+		/*
+		for(int i = 0; i < 70; i++){
+			leds[i].colors.r = r;
+			leds[i].colors.g = g;
+			leds[i].colors.b = b;
+		}
+		*/
 
 		ws2812_send(leds, LED_COUNT);
 		
     	}
-	*/
-
-	adc_init();
-
+	
+	//dac_init();
+	//adc_init();
+	
 	while(1){
 		__asm__("nop");
 	}

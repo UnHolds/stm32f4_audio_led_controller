@@ -9,6 +9,7 @@
 #include "isr.h"
 #include "ws2812_var.h"
 #include "adc_var.h"
+#include "dac_var.h"
 
 bool dma1_initialized = false;
 bool dma2_initialized = false;
@@ -23,7 +24,6 @@ void dma1_init(void){
 		rcc_periph_clock_enable(RCC_DMA1);
 		dma1_initialized = true;
 	}
-
 }
 
 
@@ -91,9 +91,28 @@ void adc_dma_init(void){
 
 
 void dac_dma_init(void){
+	
+	dma1_init();
 
+	nvic_enable_irq(NVIC_DMA1_STREAM5_IRQ);
+	dma_stream_reset(DMA1, DMA_STREAM5);
+    	dma_set_priority(DMA1, DMA_STREAM5, DMA_SxCR_PL_VERY_HIGH);
+    	dma_set_memory_size(DMA1, DMA_STREAM5, DMA_SxCR_MSIZE_16BIT);
+    	dma_set_peripheral_size(DMA1, DMA_STREAM5, DMA_SxCR_PSIZE_16BIT);
+    	dma_enable_circular_mode(DMA1, DMA_STREAM5);
+    	dma_enable_memory_increment_mode(DMA1, DMA_STREAM5);
+    	dma_set_transfer_mode(DMA1, DMA_STREAM5, DMA_SxCR_DIR_MEM_TO_PERIPHERAL);
+    	dma_set_peripheral_address(DMA1, DMA_STREAM5, (uint32_t)&DAC_DHR12R1);
+    	dma_set_memory_address(DMA1, DMA_STREAM5, (uint32_t)(&dac_buffer[0]));
+    	dma_set_number_of_data(DMA1, DMA_STREAM5, DAC_BUFFER_SIZE);
+    	dma_enable_half_transfer_interrupt(DMA1, DMA_STREAM5);
+    	dma_enable_transfer_complete_interrupt(DMA1, DMA_STREAM5);
+    	dma_channel_select(DMA1, DMA_STREAM5, DMA_SxCR_CHSEL_7);
+    	nvic_clear_pending_irq(NVIC_DMA1_STREAM5_IRQ);
+    	nvic_set_priority(NVIC_DMA1_STREAM5_IRQ, 0); 
+	nvic_enable_irq(NVIC_DMA1_STREAM5_IRQ);
 
-
+	
 }
 
 
@@ -104,6 +123,12 @@ void dac_dma_init(void){
 //WS2812
 void dma1_stream2_isr(void) {
 	dma1_str2_isr();
+}
+
+
+//DAC1
+void dma1_stream5_isr(void) {
+	dma1_str5_isr();
 }
 
 

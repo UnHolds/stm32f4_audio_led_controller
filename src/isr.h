@@ -3,7 +3,7 @@
 
 
 void dma1_str2_isr(void);
-
+void dma1_str5_isr(void);
 
 void dma2_str0_isr(void);
 
