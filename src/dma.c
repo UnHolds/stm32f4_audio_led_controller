@@ -68,6 +68,7 @@ void adc_dma_init(void){
 
 	dma2_init();
 
+
 	nvic_enable_irq(NVIC_DMA2_STREAM0_IRQ);
 	dma_stream_reset(DMA2, DMA_STREAM0);
     	dma_set_priority(DMA2, DMA_STREAM0, DMA_SxCR_PL_VERY_HIGH);
@@ -77,14 +78,31 @@ void adc_dma_init(void){
     	dma_enable_memory_increment_mode(DMA2, DMA_STREAM0);
     	dma_set_transfer_mode(DMA2, DMA_STREAM0, DMA_SxCR_DIR_PERIPHERAL_TO_MEM);
     	dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t)&ADC1_DR);
-    	dma_set_memory_address(DMA2, DMA_STREAM0, (uint32_t)(&adc_buffer[0]));
+    	dma_set_memory_address(DMA2, DMA_STREAM0, (uint32_t)(&adc_buffer1[0]));
     	dma_set_number_of_data(DMA2, DMA_STREAM0, ADC_BUFFER_SIZE);
     	dma_enable_half_transfer_interrupt(DMA2, DMA_STREAM0);
     	dma_enable_transfer_complete_interrupt(DMA2, DMA_STREAM0);
     	dma_channel_select(DMA2, DMA_STREAM0, DMA_SxCR_CHSEL_0);
     	nvic_clear_pending_irq(NVIC_DMA2_STREAM0_IRQ);
     	nvic_set_priority(NVIC_DMA2_STREAM0_IRQ, 0);
-	nvic_enable_irq(NVIC_DMA2_STREAM0_IRQ);
+
+
+	//nvic_enable_irq(NVIC_DMA2_STREAM3_IRQ);
+	dma_stream_reset(DMA2, DMA_STREAM3);
+    	dma_set_priority(DMA2, DMA_STREAM3, DMA_SxCR_PL_VERY_HIGH);
+    	dma_set_memory_size(DMA2, DMA_STREAM3, DMA_SxCR_MSIZE_16BIT);
+    	dma_set_peripheral_size(DMA2, DMA_STREAM3, DMA_SxCR_PSIZE_16BIT);
+    	dma_enable_circular_mode(DMA2, DMA_STREAM3);
+    	dma_enable_memory_increment_mode(DMA2, DMA_STREAM3);
+    	dma_set_transfer_mode(DMA2, DMA_STREAM3, DMA_SxCR_DIR_PERIPHERAL_TO_MEM);
+    	dma_set_peripheral_address(DMA2, DMA_STREAM3, (uint32_t)&ADC2_DR);
+    	dma_set_memory_address(DMA2, DMA_STREAM3, (uint32_t)(&adc_buffer2[0]));
+    	dma_set_number_of_data(DMA2, DMA_STREAM3, ADC_BUFFER_SIZE);
+    	//dma_enable_half_transfer_interrupt(DMA2, DMA_STREAM3);
+    	//dma_enable_transfer_complete_interrupt(DMA2, DMA_STREAM3);
+    	dma_channel_select(DMA2, DMA_STREAM3, DMA_SxCR_CHSEL_1);
+    	//nvic_clear_pending_irq(NVIC_DMA2_STREAM0_IRQ);
+    	//nvic_set_priority(NVIC_DMA2_STREAM0_IRQ, 0);
 
 }
 

@@ -42,6 +42,11 @@ void dac_setup(void){
 	dac_set_trigger_source(DAC_CR_TSEL1_SW);
 	//dac_dma_enable(CHANNEL_1);
 	dac_enable(CHANNEL_1);
+
+
+	dac_trigger_enable(CHANNEL_2);
+	dac_set_trigger_source(DAC_CR_TSEL2_SW);
+	dac_enable(CHANNEL_2);
 }
 
 void dac_init(void){
