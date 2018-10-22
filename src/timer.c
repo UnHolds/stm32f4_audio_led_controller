@@ -43,13 +43,24 @@ void adc_dac_timer_init(void){
 		timer_set_mode(TIM2, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
 		timer_continuous_mode(TIM2);
 		timer_set_prescaler(TIM2, 0);
-		timer_set_period(TIM2, 1000);
+		timer_set_period(TIM2, 100);
+
+		//ADC
+		timer_enable_oc_output(TIM2, TIM_OC2);
+		timer_disable_oc_clear(TIM2, TIM_OC2);
+		timer_disable_oc_preload(TIM2, TIM_OC2);
+		timer_set_oc_slow_mode(TIM2, TIM_OC2);
+		timer_set_oc_mode(TIM2, TIM_OC2, TIM_OCM_TOGGLE);
+		timer_set_oc_value(TIM2, TIM_OC2, 50);
+	
+		//DAC (not used)
 		timer_enable_oc_output(TIM2, TIM_OC1);
 		timer_disable_oc_clear(TIM2, TIM_OC1);
 		timer_disable_oc_preload(TIM2, TIM_OC1);
 		timer_set_oc_slow_mode(TIM2, TIM_OC1);
 		timer_set_oc_mode(TIM2, TIM_OC1, TIM_OCM_TOGGLE);
-		timer_set_oc_value(TIM2, TIM_OC1, 50);
+		timer_set_oc_value(TIM2, TIM_OC1, 100);
+
 		timer_disable_preload(TIM2);
 		/* Set the timer trigger output (for the DAC) to the channel 1 output
 		   compare */

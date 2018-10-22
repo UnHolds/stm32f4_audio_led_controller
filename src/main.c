@@ -9,6 +9,7 @@
 #include "ws2812.h"
 #include "adc.h"
 #include "dac.h"
+#include "gpio.h"
 
 #define LED_COUNT (300)
 
@@ -31,8 +32,9 @@ void clock_setup(void){
 int main(void)
 {
     	clock_setup();
+	status_leds_init();
     	
-	
+	/*
 	ws2812_init();
 
 	
@@ -79,20 +81,20 @@ int main(void)
 		leds[past_addr].colors.b = 0;
 		
 
-		/*
-		for(int i = 0; i < 70; i++){
-			leds[i].colors.r = r;
-			leds[i].colors.g = g;
-			leds[i].colors.b = b;
-		}
-		*/
+		
+		//for(int i = 0; i < 70; i++){
+		//	leds[i].colors.r = r;
+		//	leds[i].colors.g = g;
+		//	leds[i].colors.b = b;
+		//}
+		
 
 		ws2812_send(leds, LED_COUNT);
 		
     	}
-	
-	//dac_init();
-	//adc_init();
+	*/
+	dac_init();
+	adc_init();
 	
 	while(1){
 		__asm__("nop");

@@ -16,17 +16,18 @@ uint16_t dac_buffer[DAC_BUFFER_SIZE];
 
 void dac_setup(void);
 
+//DMA maybe later :)
 void dma1_str5_isr(void){
 
 	if (dma_get_interrupt_flag(DMA1, DMA_STREAM5, DMA_HTIF) != 0) {
 		
-		dma_clear_interrupt_flags(DMA2, DMA_STREAM0, DMA_HTIF);
+		dma_clear_interrupt_flags(DMA1, DMA_STREAM5, DMA_HTIF);
 	
     	}
 
     	if (dma_get_interrupt_flag(DMA1, DMA_STREAM5, DMA_TCIF) != 0) {
 		
-		dma_clear_interrupt_flags(DMA2, DMA_STREAM0, DMA_TCIF);
+		dma_clear_interrupt_flags(DMA1, DMA_STREAM5, DMA_TCIF);
     	}
 
 }
@@ -37,8 +38,9 @@ void dac_setup(void){
 	/* Setup the DAC channel 1, with timer 2 as trigger source.
 	 * Assume the DAC has woken up by the time the first transfer occurs */
 	dac_trigger_enable(CHANNEL_1);
-	dac_set_trigger_source(DAC_CR_TSEL1_T2);
-	dac_dma_enable(CHANNEL_1);
+	//dac_set_trigger_source(DAC_CR_TSEL1_T2);
+	dac_set_trigger_source(DAC_CR_TSEL1_SW);
+	//dac_dma_enable(CHANNEL_1);
 	dac_enable(CHANNEL_1);
 }
 
@@ -50,11 +52,11 @@ void dac_init(void){
 
 	dac_gpio_init();
 	dac_timer_init();
-	dac_dma_init();
+	//dac_dma_init();
 	dac_setup();
 
 	
 
-	dma_enable_stream(DMA1, DMA_STREAM5);
+	//dma_enable_stream(DMA1, DMA_STREAM5);
 
 }
