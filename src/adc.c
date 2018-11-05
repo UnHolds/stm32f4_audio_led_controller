@@ -22,6 +22,8 @@ uint16_t adc_buffer2[ADC_BUFFER_SIZE];
 uint8_t channel_seq_1[1];
 uint8_t channel_seq_2[1];
 bool buffer_ready = false;
+bool buffer_high = false;
+bool buffer_low = false;
 
 uint16_t dac_buffer_position = 0;
 
@@ -36,17 +38,24 @@ void dma2_str0_isr(void) {
 
     if (dma_get_interrupt_flag(DMA2, DMA_STREAM0, DMA_HTIF) != 0) {
 	
+	buffer_high = false;
+	
 	ADC_HTIF_filter_isr();
 
 	buffer_ready = true;
+	buffer_low = true;
 	dac_buffer_position = 0;
 	dma_clear_interrupt_flags(DMA2, DMA_STREAM0, DMA_HTIF);
 	
     }
 
     if (dma_get_interrupt_flag(DMA2, DMA_STREAM0, DMA_TCIF) != 0) {
-		
+	
+	buffer_low = false;		
+
 	ADC_TCIF_filter_isr();
+
+	buffer_high = true;
 	dac_buffer_position = DAC_BUFFER_SIZE / 2;
 	dma_clear_interrupt_flags(DMA2, DMA_STREAM0, DMA_TCIF);
     }
@@ -59,12 +68,17 @@ void adc_isr(void){
 
 	if(adc_get_flag(ADC1, ADC_SR_EOC) == 0){ // <-- doesn't work ? 
 		if(buffer_ready){
-			//(uint16_t) adc_read_regular(ADC1)
-			dac_load_data_buffer_single(dac_buffer[dac_buffer_position], RIGHT12, CHANNEL_1);
-			dac_load_data_buffer_single(adc_buffer2[dac_buffer_position], RIGHT12, CHANNEL_2);//only for L R support
-			dac_buffer_position++;
-			dac_software_trigger(CHANNEL_1);
-			dac_software_trigger(CHANNEL_2);
+
+			if((buffer_low == true && dac_buffer_position < DAC_BUFFER_SIZE / 2) || (buffer_high == true && dac_buffer_position < DAC_BUFFER_SIZE)){
+
+				//(uint16_t) adc_read_regular(ADC1)
+				//dac_load_data_buffer_single((uint16_t) adc_read_regular(ADC1), RIGHT12, CHANNEL_1);
+				dac_load_data_buffer_single(dac_buffer[dac_buffer_position], RIGHT12, CHANNEL_1);
+				dac_load_data_buffer_single(adc_buffer2[dac_buffer_position], RIGHT12, CHANNEL_2);//only for L R support
+				dac_buffer_position++;
+				dac_software_trigger(CHANNEL_1);
+				dac_software_trigger(CHANNEL_2);
+			}
 		}
 		adc_clear_flag(ADC1, ADC_SR_EOC);
 	}

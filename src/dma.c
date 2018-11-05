@@ -58,7 +58,7 @@ void ws2812_dma_init(void){
     	dma_enable_transfer_complete_interrupt(DMA1, DMA_STREAM2);
     	dma_channel_select(DMA1, DMA_STREAM2, DMA_SxCR_CHSEL_5);
     	nvic_clear_pending_irq(NVIC_DMA1_STREAM2_IRQ);
-    	nvic_set_priority(NVIC_DMA1_STREAM2_IRQ, 0); 
+    	nvic_set_priority(NVIC_DMA1_STREAM2_IRQ, 1); 
 	nvic_enable_irq(NVIC_DMA1_STREAM2_IRQ);
 }
 

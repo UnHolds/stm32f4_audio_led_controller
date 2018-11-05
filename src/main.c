@@ -34,7 +34,10 @@ int main(void)
     	clock_setup();
 	status_leds_init();
     	
-	/*
+	dac_init();
+	adc_init();
+
+
 	ws2812_init();
 
 	
@@ -87,14 +90,16 @@ int main(void)
 		//	leds[i].colors.g = g;
 		//	leds[i].colors.b = b;
 		//}
+
+		
 		
 
 		ws2812_send(leds, LED_COUNT);
+
 		
     	}
-	*/
-	dac_init();
-	adc_init();
+	
+	
 	
 	while(1){
 		__asm__("nop");
