@@ -42,9 +42,11 @@ void dma2_str0_isr(void) {
 	
 	ADC_HTIF_filter_isr();
 
+	
+	dac_buffer_position = 0;
 	buffer_ready = true;
 	buffer_low = true;
-	dac_buffer_position = 0;
+
 	dma_clear_interrupt_flags(DMA2, DMA_STREAM0, DMA_HTIF);
 	
     }
@@ -55,8 +57,10 @@ void dma2_str0_isr(void) {
 
 	ADC_TCIF_filter_isr();
 
-	buffer_high = true;
+	
 	dac_buffer_position = DAC_BUFFER_SIZE / 2;
+	buffer_high = true;
+
 	dma_clear_interrupt_flags(DMA2, DMA_STREAM0, DMA_TCIF);
     }
 }
@@ -78,6 +82,7 @@ void adc_isr(void){
 				dac_buffer_position++;
 				dac_software_trigger(CHANNEL_1);
 				dac_software_trigger(CHANNEL_2);
+
 			}
 		}
 		adc_clear_flag(ADC1, ADC_SR_EOC);
